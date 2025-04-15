@@ -1,0 +1,78 @@
+local player = game.Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+
+local speedEnabled = false
+local speed = 100
+local uiVisible = true
+
+-- UI Setup
+local gui = Instance.new("ScreenGui")
+gui.Name = "LegendzHub"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local mainFrame = Instance.new("Frame", gui)
+mainFrame.Size = UDim2.new(0, 200, 0, 200)
+mainFrame.Position = UDim2.new(0.5, -100, 0.5, -100)
+mainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+
+local title = Instance.new("TextLabel", mainFrame)
+title.Size = UDim2.new(1, 0, 0, 40)
+title.Text = "LegendzHub"
+title.TextColor3 = Color3.fromRGB(0, 120, 255)
+title.TextScaled = true
+title.BackgroundTransparency = 1
+
+-- Speed Toggle
+local speedToggle = Instance.new("TextButton", mainFrame)
+speedToggle.Position = UDim2.new(0, 10, 0, 50)
+speedToggle.Size = UDim2.new(0, 180, 0, 30)
+speedToggle.Text = "Speed: OFF"
+speedToggle.TextScaled = true
+speedToggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+speedToggle.TextColor3 = Color3.new(1, 1, 1)
+
+speedToggle.MouseButton1Click:Connect(function()
+	speedEnabled = not speedEnabled
+	speedToggle.Text = "Speed: " .. (speedEnabled and "ON" or "OFF")
+end)
+
+-- Speed Input
+local speedBox = Instance.new("TextBox", mainFrame)
+speedBox.Position = UDim2.new(0, 10, 0, 90)
+speedBox.Size = UDim2.new(0, 180, 0, 30)
+speedBox.PlaceholderText = "Enter Speed"
+speedBox.Text = ""
+speedBox.TextScaled = true
+speedBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+speedBox.TextColor3 = Color3.new(1, 1, 1)
+
+speedBox.FocusLost:Connect(function()
+	local val = tonumber(speedBox.Text)
+	if val and val > 0 then
+		speed = val
+	end
+end)
+
+-- UI Toggle key (RightShift)
+UIS.InputBegan:Connect(function(input, gpe)
+	if input.KeyCode == Enum.KeyCode.RightShift and not gpe then
+		uiVisible = not uiVisible
+		mainFrame.Visible = uiVisible
+	end
+end)
+
+-- TP Walk Logic
+RunService.RenderStepped:Connect(function(dt)
+	if speedEnabled and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChild("Humanoid") then
+		local hrp = player.Character.HumanoidRootPart
+		local moveDir = player.Character.Humanoid.MoveDirection
+		if moveDir.Magnitude > 0 then
+			hrp.CFrame = hrp.CFrame + (moveDir * speed * dt)
+		end
+	end
+end)
